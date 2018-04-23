@@ -493,3 +493,134 @@ begin tran with mark
 	begin catch
 		rollback
 	end catch
+
+
+
+---------coalesce-------
+
+	declare @value varchar(100) = NULL;
+	select @value;
+	select coalesce(@value, 'XD')
+	select coalesce(@value, NULL, @value, NULL, 'HH', 'XD')
+--
+declare @value2 varchar(100) = NULL;
+declare @value3 varchar(100) = 'foo';
+select isnull(@value2, 'XD')
+select isnull(@value3, 'DD')
+
+
+declare @value4 varchar(3) = NULL;
+declare @value5 varchar(10) = 'qwertyuiop';
+select coalesce(@value4, @value5), isnull(@value4, @value5)
+
+
+-------nullif-------
+declare @i int = 10, @y int = 10;
+select nullif(@i, @y)
+SELECT NULLIF(4,4) AS Same, NULLIF(5,7) AS Different;
+
+
+
+---iif-----
+
+select iif(10 > 5, 'yes', 'no')
+select iif(10 < 5, 'yes', 'no')
+
+
+---choose----
+declare @choice int = 2 ;
+select choose(@choice, 'a', 'b', 'c')
+
+------ merge -----
+
+create schema src
+go
+
+create schema destination
+go
+
+create table destination.Product
+(
+productId int identity,
+productName nvarchar(100)
+)
+go
+
+insert into src.Product values ('rock'), ('smith');
+
+
+select * from src.Product 
+
+
+--merging both tables--
+
+merge into destination.Product as Tgt
+using src.Product as src
+on Tgt.productid = src.productid
+when matched then
+update set Tgt.productname = src.productname
+when not matched by target then -- "by target" or "by source"
+insert(productname) values(src.Productname);
+
+
+select * from destination.Product;
+select * from src.Product;
+
+
+--------triggers--- 
+
+create trigger capetown.modifyDoctor
+on CapeTown.doctor
+for delete, update, insert
+as 
+begin
+print 'manipulation happened on the doctor table xD'
+end
+go
+
+delete from CapeTown.Doctor where DoctorID = 4
+
+--insert into CapeTown.Doctor values ('Damian', 'Beverly Hills', 'GP', 2, NULL)
+--select * from CapeTown.Doctor
+
+
+--when not matched by target then
+--insert into tgt values(src.productname);
+
+go
+
+
+create trigger capetown.modifyPatient
+on CapeTown.patient
+instead of delete, update, insert
+as 
+begin
+print 'you cannot modify this table xD'
+end
+go
+
+
+delete from CapeTown.patient where patientid = 1008
+select * from CapeTown.patient;
+
+
+
+--afret of trigger---
+
+
+create trigger dbo.ModifyDrugs
+on dbo.Drugs
+after delete, update, insert
+as
+begin
+select i.DrugName as insertedDrug from inserted as i
+select d.DrugName as deletedDrug from deleted as d
+end
+go
+
+insert into dbo.Drugs values ('new drug 8')
+select * from dbo.Drugs 
+delete from dbo.Drugs where DrugId = 1007
+
+
+---pivoting---
