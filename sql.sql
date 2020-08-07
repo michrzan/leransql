@@ -3,7 +3,7 @@ select * from CapeTown.Doctor as "d"
 select * from CapeTown.Doctor d
 select * from CapeTown.Doctor "d"
 
-
+---
 
 alter table CapeTown.Patient 
 drop constraint FK__Patient__AppId__3F466844
